@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Task</string>
+
+    <string name="menuone">Task</string>
+    <string name="menutwo">LocationData</string>
+    <string name="menuthree">NotedTask</string>
+    <string name="menufour">Logout</string>
+    <string name="open">NotedTask</string>
+    <string name="close">Login</string>
+
+    <string-array name="nav_item_activity_titles">
+        <item>Task</item>
+        <item>LocationData</item>
+        <item>NotedTasks</item>
+        <item>Logout</item>
+    </string-array>
+
+    <string-array name="page_view_title">
+        <item>Goolgle Location</item>
+        <item>Task Note</item>
+    </string-array>
+</resources>
