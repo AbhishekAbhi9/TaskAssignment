@@ -31,6 +31,10 @@
             android:name=".Activity.Activity.MainActivity"
             android:screenOrientation="portrait" />
         <activity android:name=".Activity.Activity.NewUser"></activity>
+
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
     </application>
 
 </manifest>

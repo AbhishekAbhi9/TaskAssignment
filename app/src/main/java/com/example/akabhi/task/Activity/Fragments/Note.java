@@ -10,7 +10,7 @@ import android.view.ViewGroup;
 
 import com.example.akabhi.task.R;
 
-public class NoteTask extends Fragment {
+public class Note extends Fragment {
 
     @Nullable
     @Override

@@ -5,7 +5,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
 import com.example.akabhi.task.Activity.Fragments.CurrentLocation;
-import com.example.akabhi.task.Activity.Fragments.NoteTask;
+import com.example.akabhi.task.Activity.Fragments.Note;
+import com.example.akabhi.task.Activity.Fragments.NotedTask;
 
 public class PageAdapter extends FragmentPagerAdapter {
     int mNumOfTabs;
@@ -23,8 +24,8 @@ public class PageAdapter extends FragmentPagerAdapter {
                 CurrentLocation currentLocation = new CurrentLocation();
                 return currentLocation;
             case 1:
-                NoteTask noteTask = new NoteTask();
-                return noteTask;
+                NotedTask note = new NotedTask();
+                return note;
             default:
                 return null;
         }

@@ -8,17 +8,15 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Toast;
 
 import com.example.akabhi.task.Activity.Fragments.LocationData;
-import com.example.akabhi.task.Activity.Fragments.NoteTask;
+import com.example.akabhi.task.Activity.Fragments.Note;
 import com.example.akabhi.task.Activity.Fragments.Task;
 import com.example.akabhi.task.R;
 
@@ -154,8 +152,8 @@ public class MainActivity extends AppCompatActivity {
                 LocationData locationData = new LocationData();
                 return locationData;
             case 2:
-                NoteTask noteTask = new NoteTask();
-                return noteTask;
+                Note note = new Note();
+                return note;
             case 3:
                 Intent intent = new Intent(MainActivity.this, loginScreen.class);
                 startActivity(intent);
