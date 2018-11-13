@@ -1,13 +1,23 @@
 package com.example.akabhi.task.Activity.Fragments;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.graphics.Color;
+import android.location.Geocoder;
 import android.location.Location;
 
+import com.example.akabhi.task.Activity.DataBase.DataBase;
+import com.google.android.gms.identity.intents.Address;
 import com.google.android.gms.location.LocationListener;
 
 import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -19,6 +29,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -40,15 +51,24 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class CurrentLocation extends Fragment implements OnMapReadyCallback {
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
-    private static final String TAG = "LocationFragment";
-    private LocationManager mLocationManager;
+public class CurrentLocation extends Fragment implements OnMapReadyCallback, LocationListener, GoogleApiClient.OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks {
+
     private TextView currentLocation;
-    private GoogleMap mMap;
+    private Button SearchLocation;
     private Context mContext;
     private SupportMapFragment supportMapFragment;
     private FragmentManager fragmentManager;
+    private GoogleMap mMap;
+    private GoogleApiClient mGoogleApiClient;
+    private LocationRequest mLocationRequest;
+    private ProgressDialog progressDialog;
+    private int pBarMax = 60;
+    private String nearPlace;
+    private Marker mCurrLocationMarker;
 
     @Nullable
     @Override
@@ -56,19 +76,35 @@ public class CurrentLocation extends Fragment implements OnMapReadyCallback {
         View view = inflater.inflate(R.layout.currentlocation, null);
         mContext = getActivity();
         currentLocation = view.findViewById(R.id.currentLocation);
+        SearchLocation = view.findViewById(R.id.SearchLocation);
+        Load_permission(mContext);
         googleservicesavailable();
+
+        progressDialog = new ProgressDialog(mContext);
+        progressDialog.setMax(pBarMax);
+        progressDialog.setProgressStyle(Color.BLACK);
+        progressDialog.setTitle("Loading Location....");
+        // progressDialog.setCancelable(false);
+        progressDialog.show();
+
         return view;
+    }
+
+    protected void Load_permission(Context mContext) {
+        if (ActivityCompat.checkSelfPermission(this.mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions((Activity) this.mContext, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        } else {
+        }
     }
 
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
         fragmentManager = getActivity().getSupportFragmentManager();/// getChildFragmentManager();
-        supportMapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.map);
+        supportMapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.map_container);
         if (supportMapFragment == null) {
             supportMapFragment = SupportMapFragment.newInstance();
-            fragmentManager.beginTransaction().replace(R.id.map, supportMapFragment).commit();
+            fragmentManager.beginTransaction().replace(R.id.map_container, supportMapFragment).commit();
         }
         supportMapFragment.getMapAsync(this);
     }
@@ -90,12 +126,85 @@ public class CurrentLocation extends Fragment implements OnMapReadyCallback {
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        goToLocation(18.6163848, 73.8436851, 15);
+        buildGoogleApiClient();
     }
 
-    private void goToLocation(double lat, double log, float zoom) {
-        LatLng latLng = new LatLng(lat, log);
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, zoom);
-        mMap.moveCamera(cameraUpdate);
+    protected synchronized void buildGoogleApiClient() {
+        mGoogleApiClient = new GoogleApiClient.Builder(mContext)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(LocationServices.API).build();
+        mGoogleApiClient.connect();
+    }
+
+    @SuppressLint("RestrictedApi")
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        mLocationRequest = new LocationRequest().create();
+        mLocationRequest.setInterval(1000);
+        mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient, mLocationRequest, this);
+    }
+
+    @Override
+    public void onLocationChanged(final Location location) {
+        if (location == null) {
+            Toast.makeText(mContext, "Cant get current location", Toast.LENGTH_SHORT).show();
+        } else {
+            try {
+                progressDialog.cancel();
+                Geocoder geocoder = new Geocoder(mContext, Locale.getDefault());
+                List<android.location.Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
+                nearPlace = addresses.get(0).getAddressLine(0);
+                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+                if (mCurrLocationMarker != null) {
+                    mCurrLocationMarker.remove();
+                }
+
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(latLng);
+                markerOptions.title(nearPlace);
+                markerOptions.snippet("current location");
+                markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+                mCurrLocationMarker = mMap.addMarker(markerOptions);
+                CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 35);
+                mMap.animateCamera(cameraUpdate);
+                mMap.getUiSettings().setZoomControlsEnabled(true);
+                currentLocation.setText(nearPlace);
+                //==========================Saving Location=============================================
+                SearchLocation.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        DataBase dataBase = new DataBase(mContext);
+                        dataBase.Insert_Function_Location(location.getLatitude(), location.getLongitude(), nearPlace);
+                        currentLocation.setText(nearPlace);
+                    }
+                });
+            } catch (IOException i) {
+            }
+        }
+    }
+
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
     }
 }

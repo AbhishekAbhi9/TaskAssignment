@@ -20,4 +20,5 @@
         <item>Goolgle Location</item>
         <item>Task Note</item>
     </string-array>
+    <string name="title_activity_calender">calenderActivity</string>
 </resources>

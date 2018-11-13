@@ -80,14 +80,18 @@ public class loginScreen extends AppCompatActivity {
     private void Login() {
         dataBase = new DataBase(loginScreen.this);
         Cursor cursor = dataBase.Select_Function_User();
-        while (cursor.moveToNext()) {
-            if (user_name.getText().toString().equals(cursor.getString(1)) &&
-                    user_password.getText().toString().equals(cursor.getString(2))) {
-                Intent intent = new Intent(loginScreen.this, MainActivity.class);
-                startActivity(intent);
-            } else {
-                Toast.makeText(this, "Please check password and username", Toast.LENGTH_SHORT).show();
+        if (cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                if (user_name.getText().toString().equals(cursor.getString(1)) &&
+                        user_password.getText().toString().equals(cursor.getString(2))) {
+                    Intent intent = new Intent(loginScreen.this, MainActivity.class);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(this, "Please check password and username", Toast.LENGTH_SHORT).show();
+                }
             }
+        } else {
+            Toast.makeText(this, "No User is created in database", Toast.LENGTH_SHORT).show();
         }
     }
 

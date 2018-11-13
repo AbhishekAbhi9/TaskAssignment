@@ -5,7 +5,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 
 import com.example.akabhi.task.Activity.Fragments.CurrentLocation;
-import com.example.akabhi.task.Activity.Fragments.Note;
 import com.example.akabhi.task.Activity.Fragments.NotedTask;
 
 public class PageAdapter extends FragmentPagerAdapter {
