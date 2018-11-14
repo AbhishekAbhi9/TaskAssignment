@@ -1,7 +1,13 @@
 package com.example.akabhi.task.Activity.Adapter;
 
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.graphics.Color;
 import android.graphics.Typeface;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -10,22 +16,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.TextView;
 
-import com.example.akabhi.task.Activity.Activity.NewUser;
+import com.example.akabhi.task.Activity.Activity.calenderActivity;
+import com.example.akabhi.task.Activity.DataBase.DataBase;
 import com.example.akabhi.task.R;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import PojoClasses.Location_Pojo;
-
-import static android.support.v4.app.ActivityCompat.startActivityForResult;
 
 public class TaskAdapter extends BaseExpandableListAdapter {
 
     private ArrayList<Location_Pojo> location_pojos;
     private Context context;
-    private int REQUESTCODE = 1;
 
     public TaskAdapter(ArrayList<Location_Pojo> location_pojo, FragmentActivity activity) {
         this.location_pojos = location_pojo;
@@ -62,6 +68,7 @@ public class TaskAdapter extends BaseExpandableListAdapter {
         return convertView;
     }
 
+    @SuppressLint("ResourceAsColor")
     @Override
     public View getChildView(final int groupPosition, final int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
         if (convertView == null) {
@@ -69,19 +76,34 @@ public class TaskAdapter extends BaseExpandableListAdapter {
             convertView = infalInflater.inflate(R.layout.childview, null);
         }
 
-        TextView tasks = convertView.findViewById(R.id.tasks);
+        final TextView tasks = convertView.findViewById(R.id.tasks);
         final Button calender = convertView.findViewById(R.id.calender);
 
         calender.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Log.e("position", String.valueOf(childPosition));
-                Log.e("group", String.valueOf(groupPosition));
+                Intent intent = new Intent(context, calenderActivity.class);
+                intent.putExtra("parentposition", groupPosition);
+                intent.putExtra("childpositoin", childPosition);
+                intent.putExtra("location", location_pojos.get(groupPosition).getLocationName().toString());
+                context.startActivity(intent);
             }
         });
 
-        tasks.setTypeface(null, Typeface.BOLD);
-        tasks.setText("add task");
+        DataBase dataBase = new DataBase(context);
+        Cursor cursor = dataBase.Select_Function_Task();
+        while (cursor.moveToNext()) {
+            if (cursor.getCount() > 0) {
+                try {
+                    if ((groupPosition == cursor.getInt(2)) && (childPosition == cursor.getInt(3))) {
+                        tasks.setBackgroundColor(Color.parseColor("#228B22"));
+                        tasks.setText(cursor.getString(1) + " (" + cursor.getString(4) + ") ");
+                    }
+                } catch (IndexOutOfBoundsException i) {
+                }
+            }
+        }
+
         return convertView;
     }
 
@@ -109,4 +131,5 @@ public class TaskAdapter extends BaseExpandableListAdapter {
     public boolean isChildSelectable(int groupPosition, int childPosition) {
         return true;
     }
+
 }

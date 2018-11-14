@@ -12,7 +12,7 @@
         android:layout_weight="1"
         android:background="@color/grey"
         android:padding="10dp"
-        android:text="location" />
+        android:text="task" />
 
     <Button
         android:id="@+id/calender"
