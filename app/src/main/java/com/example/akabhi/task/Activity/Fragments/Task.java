@@ -21,7 +21,6 @@ import com.example.akabhi.task.R;
 public class Task extends Fragment {
 
     private TabLayout tabLayout;
-    private Toolbar toolbar;
     private ViewPager viewPager;
 
     private int[] tabIcons = {

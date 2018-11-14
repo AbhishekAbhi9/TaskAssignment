@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.akabhi.task.Activity.DataBase.DataBase;
 import com.example.akabhi.task.R;
@@ -60,10 +61,15 @@ public class calenderActivity extends AppCompatActivity {
                         @Override
                         public void onClick(View v) {
                             String taskNotedString = taskNote.getText().toString();
-                            DataBase dataBase = new DataBase(calenderActivity.this);
-                            dataBase.Insert_Function_Task(taskNotedString, ParentPosition, ChildPosition, datetime,location);
-                            dialog.cancel();
-                            finish();
+                            if (taskNotedString.length() > 5) {
+                                DataBase dataBase = new DataBase(calenderActivity.this);
+                                dataBase.Insert_Function_Task(taskNotedString, ParentPosition, ChildPosition, datetime, location);
+                                dialog.cancel();
+                                finish();
+                            } else {
+                                Toast.makeText(calenderActivity.this, "No task is added", Toast.LENGTH_SHORT).show();
+                                dialog.cancel();
+                            }
                         }
                     });
 

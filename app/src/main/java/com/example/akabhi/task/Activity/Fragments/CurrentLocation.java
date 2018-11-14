@@ -25,6 +25,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -69,6 +70,7 @@ public class CurrentLocation extends Fragment implements OnMapReadyCallback, Loc
     private int pBarMax = 60;
     private String nearPlace;
     private Marker mCurrLocationMarker;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     @Nullable
     @Override
@@ -77,36 +79,32 @@ public class CurrentLocation extends Fragment implements OnMapReadyCallback, Loc
         mContext = getActivity();
         currentLocation = view.findViewById(R.id.currentLocation);
         SearchLocation = view.findViewById(R.id.SearchLocation);
-        Load_permission(mContext);
+        swipeRefreshLayout = view.findViewById(R.id.swiperefreshlocation);
         googleservicesavailable();
 
         progressDialog = new ProgressDialog(mContext);
         progressDialog.setMax(pBarMax);
         progressDialog.setProgressStyle(Color.BLACK);
         progressDialog.setTitle("Loading Location....");
+        progressDialog.setMessage("Please open GPS of your handset and go to open area");
         // progressDialog.setCancelable(false);
         progressDialog.show();
 
-        return view;
-    }
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                googleservicesavailable();
+                progressDialog.show();
+            }
+        });
 
-    protected void Load_permission(Context mContext) {
-        if (ActivityCompat.checkSelfPermission(this.mContext, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this.mContext, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions((Activity) this.mContext, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-        } else {
-        }
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
         fragmentManager = getActivity().getSupportFragmentManager();/// getChildFragmentManager();
         supportMapFragment = (SupportMapFragment) fragmentManager.findFragmentById(R.id.map_container);
-        if (supportMapFragment == null) {
-            supportMapFragment = SupportMapFragment.newInstance();
-            fragmentManager.beginTransaction().replace(R.id.map_container, supportMapFragment).commit();
-        }
+        supportMapFragment = SupportMapFragment.newInstance();
+        fragmentManager.beginTransaction().replace(R.id.map_container, supportMapFragment).commit();
         supportMapFragment.getMapAsync(this);
+
+        return view;
     }
 
     protected boolean googleservicesavailable() {
@@ -126,7 +124,11 @@ public class CurrentLocation extends Fragment implements OnMapReadyCallback, Loc
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        buildGoogleApiClient();
+        if (mMap == null) {
+            Toast.makeText(mContext, "map is not created", Toast.LENGTH_SHORT).show();
+        } else {
+            buildGoogleApiClient();
+        }
     }
 
     protected synchronized void buildGoogleApiClient() {
@@ -160,10 +162,11 @@ public class CurrentLocation extends Fragment implements OnMapReadyCallback, Loc
     @Override
     public void onLocationChanged(final Location location) {
         if (location == null) {
-            Toast.makeText(mContext, "Cant get current location", Toast.LENGTH_SHORT).show();
+            Toast.makeText(mContext, "Can not get current location", Toast.LENGTH_SHORT).show();
         } else {
             try {
                 progressDialog.cancel();
+                swipeRefreshLayout.setRefreshing(false);
                 Geocoder geocoder = new Geocoder(mContext, Locale.getDefault());
                 List<android.location.Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
                 nearPlace = addresses.get(0).getAddressLine(0);
@@ -183,6 +186,7 @@ public class CurrentLocation extends Fragment implements OnMapReadyCallback, Loc
                 mMap.animateCamera(cameraUpdate);
                 mMap.getUiSettings().setZoomControlsEnabled(true);
                 currentLocation.setText(nearPlace);
+
                 //==========================Saving Location=============================================
                 SearchLocation.setOnClickListener(new View.OnClickListener() {
                     @Override

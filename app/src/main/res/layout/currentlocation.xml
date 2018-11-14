@@ -28,11 +28,17 @@
             android:text="save" />
     </LinearLayout>
 
-    <fragment
-        android:id="@+id/map_container"
-        android:name="com.google.android.gms.maps.SupportMapFragment"
+    <android.support.v4.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/swiperefreshlocation"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="10dp"
-        map:uiZoomControls="true" />
+        android:layout_margin="10dp">
+
+        <fragment
+            android:id="@+id/map_container"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            map:uiZoomControls="true" />
+    </android.support.v4.widget.SwipeRefreshLayout>
 </LinearLayout>
