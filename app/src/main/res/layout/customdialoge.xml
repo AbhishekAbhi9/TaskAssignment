@@ -38,7 +38,7 @@
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:background="@drawable/round"
-            android:hint="player Name please!"
+            android:hint="enter your task!!!"
             android:padding="15dp" />
     </LinearLayout>
 
